@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Canvas -- Video Caption</title>
+        <style >
+        
+            #imgContainer img{
+                width:80px;
+                height:50px;
+                box-shadow:2px 3px 10px black;
+                margin:3px;
+            } 
+            img.recorded{
+                outline:2px dashed orange;
+            }
+        </style>
+        <script src="utils.js"></script>
+    </head>
+    <body>
+   
+        <div id="btnArea">
+            <button id="btn">Show Your shared Video</button>&nbsp;
+            <button id="start">Start recording</button>&nbsp;
+            <button id="stop">Stop recording</button>
+        </div>
+
+        <video id="video" width="320" height="240" controls="controls">
+            <source src="big_buck_bunny.mp4" type="video/mp4"/>
+        </video>
+
+        <div id="msgArea">
+            <span>Canvas's showing</span>
+            <canvas id="can"></canvas>
+        </div>
+        <div id="imgContainer"></div>
+        <script type="text/cv_test" id="codeArea">
+            var imgVideo = new Image(),
+                base64Arr = #@#base64Arr,
+                totalFrame = #@#totalFrame,
+                totalTime = #@#totalTime;
+
+            document.body.appendChild(imgVideo);
+
+            (function(){
+                if(base64Arr.length)
+                {
+                    imgVideo.src=base64Arr.shift();
+                    setTimeout(arguments.callee,Math.floor(totalTime/totalFrame) );
+                }
+            })();
+        </script>
+        <script>
+            $ = function(val){
+                return document.querySelector(val);
+            }
+            var can=$("#can"),
+                ctx=can.getContext("2d"),
+                video=$("#video"),
+                base64Arr=[],
+                base64ArrCopy = [],
+                startBtn=$("#start"),
+                stopBtn=$("#stop"),
+                container=$("#imgContainer"),
+                codeArea = $("#codeArea").innerHTML,
+                isRecording=false,
+                startTime,
+                totalFrame,
+                totalTime=0;
+            
+            var ch=can.height,
+                cw=can.width;
+
+            video.addEventListener("play",function(){
+                startTime = new Date();
+                draw(this,ctx);
+            },false);
+
+
+            video.addEventListener("ended",function(){
+                console.log("ended");
+                totalFrame = container.children.length; 
+                totalTime = video.duration*1000;
+            },false);
+
+            video.addEventListener("pause",function(){
+                console.log("paused");
+                totalTime += (new Date()) - startTime;
+                totalFrame = container.children.length; 
+            },false);
+            
+            function draw(video,ctx){
+                if(video.paused || video.ended) return false;
+                ctx.drawImage(video,0,0,cw,ch);
+                var img=new Image(),
+                    src=can.toDataURL("image/png");
+                img.src=src;
+                isRecording && base64Arr.push(src) && img.classList.add("recorded");
+                container.appendChild(img);
+                setTimeout(arguments.callee,100,video,ctx);
+            }
+
+            startBtn.onclick=function(){
+                isRecording=true;
+            } 
+            stopBtn.onclick=function(){
+                isRecording=false;
+                //generate Code here
+                var arrResult = [];
+                base64ArrCopy = base64Arr.slice(0);
+                base64Arr
+                codeArea=
+                    codeArea.replace("#@#base64Arr","["+base64ArrCopy.toString()+"]")
+                            .replace("#@#totalTime",totalFrame)
+                            .replace("#@#totalTime",totalTime);
+                //console.log(codeArea);
+            }
+
+            var imgVideo=new Image();
+            document.body.insertBefore(imgVideo,document.body.firstChild);
+            
+            btn.addEventListener("click",function(){
+                
+
+                (function(){
+                    if(base64Arr.length){
+                        imgVideo.src=base64Arr.shift();
+                        setTimeout(arguments.callee,Math.floor(totalTime/totalFrame) );
+                    }
+                })();
+            },false);
+            
+        </script>
+
+    </body>
+<html>
