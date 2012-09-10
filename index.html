@@ -53,6 +53,17 @@
             $ = function(val){
                 return document.querySelector(val);
             }
+            function draw(video,ctx){
+                var img=new Image(),
+                    src=can.toDataURL("image/png");
+
+                if(video.paused || video.ended) return false;
+                ctx.drawImage(video,0,0,cw,ch);
+                img.src=src;
+                isRecording && base64Arr.push(src) && img.classList.add("recorded");
+                container.appendChild(img);
+                setTimeout(arguments.callee,100,video,ctx);
+            }
             var can=$("#can"),
                 ctx=can.getContext("2d"),
                 video=$("#video"),
@@ -88,16 +99,6 @@
                 totalFrame = container.children.length; 
             },false);
             
-            function draw(video,ctx){
-                if(video.paused || video.ended) return false;
-                ctx.drawImage(video,0,0,cw,ch);
-                var img=new Image(),
-                    src=can.toDataURL("image/png");
-                img.src=src;
-                isRecording && base64Arr.push(src) && img.classList.add("recorded");
-                container.appendChild(img);
-                setTimeout(arguments.callee,100,video,ctx);
-            }
 
             startBtn.onclick=function(){
                 isRecording=true;
