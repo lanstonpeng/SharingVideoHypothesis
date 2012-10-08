@@ -4,6 +4,20 @@
         <title>Canvas -- Video Caption</title>
         <style >
         
+            .warpper{
+                width:960px;
+                margin : 0 auto;
+            }
+            .warpper .ctrl{
+                float:left;
+                width:30%;
+            }
+            .warpper .process{
+                float:right;
+                width:66%;
+                border-left:1px dashed black;
+            }
+
             #imgContainer img{
                 width:80px;
                 height:50px;
@@ -13,27 +27,55 @@
             img.recorded{
                 outline:2px dashed orange;
             }
+            button{
+                display: block;
+                margin-top : 5px;
+            }
+            #info{
+                position: absolute;
+                background:lightblue;
+                right:10px;
+                top:20px;
+            }
         </style>
         <script src="utils.js"></script>
     </head>
     <body>
-   
-        <div id="btnArea">
-            <button id="btn">Show Your shared Video</button>&nbsp;
-            <button id="start">Start recording</button>&nbsp;
-            <button id="stop">Stop recording</button>
-        </div>
+        <div class="warpper">
+            <div class="ctrl">
+                
+                <div id="btnArea">
+                    <button id="btn">Show Your shared Video</button> 
+                    <button id="start">Start recording</button> 
+                    <button id="stop">Stop recording</button>
+                </div>
 
-        <video id="video" width="320" height="240" controls="controls">
-            <source src="big_buck_bunny.mp4" type="video/mp4"/>
-        </video>
+                <video id="video" width="320" height="240" controls="controls">
+                    <source src="big_buck_bunny.mp4" type="video/mp4"/>
+                </video>
 
-        <div id="msgArea">
-            <span>Canvas's showing</span>
-            <canvas id="can"></canvas>
+                <img id="videoImage"  style="display:none"/>
+            </div>
+
+            <div class="process">
+                 <div id="imgContainer"></div>
+            <div>
         </div>
-        <div id="imgContainer"></div>
-        <script type="text/cv_test" id="codeArea">
+        
+
+        <div id="msgArea" style="display:none">
+            <canvas id="can" ></canvas>
+        </div>
+        <div id="info">
+            <dl>
+                <dt>Total Recorded Frames:</dt>
+                <dd id="totalframe"></dd>
+                <dt>Data Length :</dt>
+                <dd id="datasize"></dd>
+            </dl>
+        </div>
+       
+        <!--<script type="text/cv_test" id="codeArea">
             var imgVideo = new Image(),
                 base64Arr = #@#base64Arr,
                 totalFrame = #@#totalFrame,
@@ -48,34 +90,50 @@
                     setTimeout(arguments.callee,Math.floor(totalTime/totalFrame) );
                 }
             })();
-        </script>
+        </script>-->
         <script>
             $ = function(val){
                 return document.querySelector(val);
             }
+
             function draw(video,ctx){
                 var img=new Image(),
-                    src=can.toDataURL("image/png");
+                    src;
 
                 if(video.paused || video.ended) return false;
+
                 ctx.drawImage(video,0,0,cw,ch);
+                src = can.toDataURL("image/png");
                 img.src=src;
-                isRecording && base64Arr.push(src) && img.classList.add("recorded");
+                if(isRecording){
+                    base64Arr.push(src);
+                    rawArr.push(window.atob(src.slice(22))) ;
+                    img.classList.add("recorded");
+                    datasize.innerHTML = totalSize+= rawArr[totalFrameCount].length ;
+                    totalframe.innerHTML = totalFrameCount++;
+                    
+                }
                 container.appendChild(img);
                 setTimeout(arguments.callee,100,video,ctx);
             }
+
             var can=$("#can"),
                 ctx=can.getContext("2d"),
                 video=$("#video"),
                 base64Arr=[],
-                base64ArrCopy = [],
+                //base64ArrCopy = [],
+                rawArr = [],
                 startBtn=$("#start"),
                 stopBtn=$("#stop"),
                 container=$("#imgContainer"),
-                codeArea = $("#codeArea").innerHTML,
+                imgVideo = $("#videoImage"),
+                totalframe = $("#totalframe"),
+                datasize = $("#datasize"),
+                //codeArea = $("#codeArea").innerHTML,
                 isRecording=false,
                 startTime,
-                totalFrame,
+                totalSize = 0,
+                totalFrameCount = 0,
                 totalTime=0;
             
             var ch=can.height,
@@ -88,39 +146,39 @@
 
 
             video.addEventListener("ended",function(){
-                console.log("ended");
+                //console.log("ended");
                 totalFrame = container.children.length; 
                 totalTime = video.duration*1000;
             },false);
 
             video.addEventListener("pause",function(){
-                console.log("paused");
+                //console.log("paused");
                 totalTime += (new Date()) - startTime;
                 totalFrame = container.children.length; 
             },false);
             
 
             startBtn.onclick=function(){
-                isRecording=true;
+                isRecording = true;
+                video.play();
             } 
-            stopBtn.onclick=function(){
-                isRecording=false;
+            stopBtn.onclick = function(){
+                isRecording = false;
+                video.pause();
                 //generate Code here
-                var arrResult = [];
-                base64ArrCopy = base64Arr.slice(0);
+                //var arrResult = [];
+                /*base64ArrCopy = base64Arr.slice(0);
                 base64Arr
                 codeArea=
                     codeArea.replace("#@#base64Arr","["+base64ArrCopy.toString()+"]")
                             .replace("#@#totalTime",totalFrame)
-                            .replace("#@#totalTime",totalTime);
-                //console.log(codeArea);
+                            .replace("#@#totalTime",totalTime);*/
             }
 
-            var imgVideo=new Image();
-            document.body.insertBefore(imgVideo,document.body.firstChild);
+            //var imgVideo=new Image();
+            //document.body.insertBefore(imgVideo,document.body.firstChild);
             
-            btn.addEventListener("click",function(){
-                
+            function generateVideoByBase64(base64Arr,imgVideo){
 
                 (function(){
                     if(base64Arr.length){
@@ -128,6 +186,27 @@
                         setTimeout(arguments.callee,Math.floor(totalTime/totalFrame) );
                     }
                 })();
+                
+            }
+            function generateVideoByRaw(rawArr,imgVideo){
+                var base64Arr = [];
+
+                imgVideo.style.display = "block";
+                for(var i=0,len=rawArr.length;i<len;i++){
+                    base64Arr[i]= "data:image/png;base64,"+window.btoa(rawArr[i]);
+                }
+                generateVideoByBase64(base64Arr,imgVideo);
+            }
+
+            btn.addEventListener("click",function(){
+                /*(function(){
+                    if(base64Arr.length){
+                        imgVideo.src=base64Arr.shift();
+                        setTimeout(arguments.callee,Math.floor(totalTime/totalFrame) );
+                    }
+                })();*/
+                //debugger;
+                generateVideoByRaw(rawArr,imgVideo);
             },false);
             
         </script>
